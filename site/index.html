@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Máy tính CI/CD</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Máy tính CI/CD</h1>
+    <p>Trang này được deploy tự động bằng GitHub Actions mỗi lần merge vào <code>main</code>.</p>
+
+    <form id="calc">
+      <input id="a" type="number" value="6" step="any" required aria-label="Số thứ nhất">
+      <select id="op" aria-label="Phép tính">
+        <option value="add">+</option>
+        <option value="subtract">−</option>
+        <option value="multiply">×</option>
+        <option value="divide">÷</option>
+      </select>
+      <input id="b" type="number" value="3" step="any" required aria-label="Số thứ hai">
+      <button type="submit">=</button>
+    </form>
+    <p id="result" aria-live="polite"></p>
+
+    <footer>Phiên bản <code>__COMMIT__</code> · build lúc __BUILD_TIME__</footer>
+  </main>
+
+  <!-- calculator.js do scripts/build.js tạo ra từ src/calculator.js -->
+  <script src="calculator.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

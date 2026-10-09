@@ -1,0 +1,72 @@
+# ============================================================
+# Bài 5: CD lên GitHub Pages
+# Mỗi lần có code mới trên main: build trang web → deploy lên
+# https://doit1607.github.io/cicd-practice/
+#
+# Tách 2 job:
+# - build:  build ra dist/ rồi đóng gói thành artifact.
+# - deploy: lấy artifact đó đưa lên Pages.
+# 2 job chạy trên 2 máy ảo KHÁC NHAU → artifact là cách chuyển file giữa chúng.
+# ============================================================
+name: Deploy Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Không cho 2 lần deploy chạy chồng nhau; cũng không huỷ lần đang chạy dở.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    # Quyền tối thiểu: job này chỉ cần đọc code.
+    permissions:
+      contents: read
+    steps:
+      - name: Tải code về runner
+        uses: actions/checkout@v7
+
+      - name: Cài Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Cài thư viện
+        run: npm ci
+
+      # Chạy test lần nữa ngay trước khi deploy: rẻ, và chặn được trường hợp
+      # ai đó push thẳng vào main mà không qua PR.
+      - name: Chạy test
+        run: npm test
+
+      - name: Build trang web
+        run: npm run build
+
+      - name: Đóng gói dist/ thành artifact cho Pages
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build             # chỉ chạy khi build thành công
+    runs-on: ubuntu-latest
+    # Chỉ job này mới được ghi lên Pages.
+    # id-token: write cho phép xin token OIDC ngắn hạn để xác thực với Pages,
+    # không cần lưu secret nào trong repo.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}   # hiện link web ngay trên trang run
+    steps:
+      - name: Deploy lên GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

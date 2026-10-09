@@ -4,10 +4,13 @@
   "private": true,
   "description": "Repo thực hành CI/CD với GitHub Actions",
   "main": "src/calculator.js",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "test": "node --test",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build": "node scripts/build.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
