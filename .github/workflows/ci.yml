@@ -42,7 +42,7 @@ jobs:
       # false: cho tất cả chạy xong → thấy được CHÍNH XÁC tổ hợp nào hỏng.
       fail-fast: false
       matrix:
-        node: [22, 24, 26]   # 22, 24 là bản LTS; 26 là bản mới nhất
+        node: [24, 26]   # 22, 24 là bản LTS; 26 là bản mới nhất
         os: [ubuntu-latest, windows-latest]
     steps:
       - name: Tải code về runner

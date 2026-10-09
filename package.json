@@ -4,6 +4,7 @@
   "private": true,
   "description": "Repo thực hành CI/CD với GitHub Actions",
   "main": "src/calculator.js",
+  "engines": { "node": ">=24" },
   "scripts": {
     "test": "node --test",
     "lint": "eslint ."
