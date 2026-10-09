@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thiệp cưới</title>
+  <meta name="description" content="Trân trọng mời bạn đến chung vui trong ngày cưới của chúng mình.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600&family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@0,500;1,500&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="nav" aria-label="Mục lục">
+    <a class="nav-logo" href="#hero" id="nav-logo">♥</a>
+    <ul>
+      <li><a href="#couple">Cặp đôi</a></li>
+      <li><a href="#story">Chuyện tình yêu</a></li>
+      <li><a href="#gallery">Album</a></li>
+      <li><a href="#events">Sự kiện</a></li>
+      <li><a href="#wishes">Sổ lưu bút</a></li>
+      <li><a href="#gifts">Mừng cưới</a></li>
+    </ul>
+  </nav>
+
+  <header id="hero" class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Save the Date</p>
+      <h1 class="hero-names">
+        <span id="hero-groom"></span>
+        <span class="amp">&amp;</span>
+        <span id="hero-bride"></span>
+      </h1>
+      <p id="hero-date" class="hero-date"></p>
+      <div id="countdown" class="countdown">
+        <div><strong data-unit="days">00</strong><span>Ngày</span></div>
+        <div><strong data-unit="hours">00</strong><span>Giờ</span></div>
+        <div><strong data-unit="minutes">00</strong><span>Phút</span></div>
+        <div><strong data-unit="seconds">00</strong><span>Giây</span></div>
+      </div>
+      <p id="countdown-done" class="countdown-done" hidden>Cảm ơn mọi người đã đến chung vui cùng chúng mình ♥</p>
+    </div>
+  </header>
+
+  <main>
+    <section id="couple" class="section">
+      <p class="eyebrow">Chú rể &amp; Cô dâu</p>
+      <h2 class="section-title">Cặp đôi</h2>
+      <div id="couple-list" class="couple"></div>
+    </section>
+
+    <section id="story" class="section section-alt">
+      <p class="eyebrow">Hành trình của chúng mình</p>
+      <h2 class="section-title">Chuyện tình yêu</h2>
+      <ol id="story-list" class="timeline"></ol>
+    </section>
+
+    <section id="gallery" class="section">
+      <p class="eyebrow">Khoảnh khắc</p>
+      <h2 class="section-title">Album ảnh cưới</h2>
+      <div id="gallery-grid" class="gallery"></div>
+    </section>
+
+    <section id="events" class="section section-alt">
+      <p class="eyebrow">Trân trọng kính mời</p>
+      <h2 class="section-title">Sự kiện cưới</h2>
+      <div id="event-list" class="cards"></div>
+    </section>
+
+    <section id="wishes" class="section">
+      <p class="eyebrow">Gửi đôi lời yêu thương</p>
+      <h2 class="section-title">Sổ lưu bút</h2>
+      <form id="wish-form" class="wish-form" novalidate>
+        <input id="wish-name" name="name" maxlength="50" autocomplete="name" placeholder="Tên của bạn" aria-label="Tên của bạn">
+        <textarea id="wish-message" name="message" rows="3" maxlength="500" placeholder="Lời chúc của bạn" aria-label="Lời chúc của bạn"></textarea>
+        <button class="btn btn-primary" type="submit">Gửi lời chúc</button>
+        <p id="wish-status" class="wish-status" role="status"></p>
+      </form>
+      <p id="wish-mode" class="note" hidden>
+        Đang chạy chế độ thử: lời chúc chỉ lưu trong trình duyệt này.
+        Điền <code>firebase</code> trong <code>config.js</code> để mọi người cùng thấy.
+      </p>
+      <ul id="wish-list" class="wish-list"></ul>
+    </section>
+
+    <section id="gifts" class="section section-alt">
+      <p class="eyebrow">Gửi quà từ xa</p>
+      <h2 class="section-title">Hộp mừng cưới</h2>
+      <div id="gift-list" class="cards"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p id="footer-names" class="footer-names"></p>
+    <p>Phiên bản <code>__COMMIT__</code> · build lúc __BUILD_TIME__ · <a href="../index.html">Trang máy tính</a></p>
+  </footer>
+
+  <button id="music-toggle" class="music-toggle" type="button" aria-pressed="false" aria-label="Bật/tắt nhạc nền" hidden>♪</button>
+
+  <dialog id="lightbox" class="lightbox" aria-label="Xem ảnh">
+    <figure>
+      <img id="lightbox-image" alt="">
+      <figcaption id="lightbox-caption"></figcaption>
+    </figure>
+    <button class="lightbox-btn lightbox-prev" type="button" data-step="-1" aria-label="Ảnh trước">‹</button>
+    <button class="lightbox-btn lightbox-next" type="button" data-step="1" aria-label="Ảnh sau">›</button>
+    <button class="lightbox-btn lightbox-close" type="button" aria-label="Đóng">×</button>
+  </dialog>
+
+  <div id="petals" class="petals" aria-hidden="true"></div>
+
+  <!-- config.js: nội dung trang, muốn đổi chữ/ảnh/ngày thì sửa ở đây.
+       wedding.js do scripts/build.js tạo ra từ src/wedding.js. -->
+  <script src="config.js"></script>
+  <script src="wedding.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
