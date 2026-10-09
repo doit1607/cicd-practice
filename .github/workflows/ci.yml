@@ -1,7 +1,8 @@
 # ============================================================
-# Bài 2: CI
-# Mỗi lần push lên main hoặc mở PR vào main: tự cài thư viện và chạy test.
-# Test fail → lệnh trả mã lỗi ≠ 0 → job đỏ → PR hiện dấu ✗.
+# Bài 2 + 3: CI
+# - lint: kiểm tra chất lượng code, chạy 1 lần là đủ.
+# - test: chạy test trên 3 version Node × 2 hệ điều hành = 6 job song song (matrix).
+# Cả 2 job đều cache thư mục tải về của npm để lần sau cài thư viện nhanh hơn.
 # ============================================================
 name: CI
 
@@ -13,8 +14,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Test (Node 24)
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Tải code về runner
@@ -24,10 +25,38 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: npm
 
-      # `npm ci` chứ không phải `npm install`: cài ĐÚNG version ghi trong
-      # package-lock.json, lock file lệch package.json thì báo lỗi ngay.
-      # Nhờ vậy lần build nào cũng giống nhau.
+      - name: Cài thư viện
+        run: npm ci
+
+      - name: Chạy ESLint
+        run: npm run lint
+
+  test:
+    # Tên lấy từ matrix → hiện thành "Test (Node 22, ubuntu-latest)", ...
+    name: Test (Node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Mặc định là true: 1 job fail thì GitHub huỷ luôn các job còn lại.
+      # false: cho tất cả chạy xong → thấy được CHÍNH XÁC tổ hợp nào hỏng.
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]   # 22, 24 là bản LTS; 26 là bản mới nhất
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Tải code về runner
+        uses: actions/checkout@v7
+
+      - name: Cài Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          # Cache thư mục tải về của npm (~/.npm), KHÔNG phải node_modules.
+          # Khoá cache = hệ điều hành + hash của package-lock.json:
+          # lock file đổi → không khớp cache cũ → tải lại rồi lưu cache mới.
+          cache: npm
+
       - name: Cài thư viện
         run: npm ci
 
