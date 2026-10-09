@@ -1,0 +1,36 @@
+# ============================================================
+# Bài 1: Hello world
+# Workflow đầu tiên: chỉ in thông tin ra log để làm quen với tab Actions
+# và thấy runner thực chất là một máy Linux bình thường.
+# ============================================================
+name: Hello
+
+on:
+  push:                # mọi lần push, ở mọi nhánh
+  workflow_dispatch:   # thêm nút "Run workflow" để chạy tay trên giao diện
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tải code về runner
+        uses: actions/checkout@v7
+
+      - name: Chào hỏi
+        run: echo "Xin chào ${{ github.actor }}! Đang chạy commit ${{ github.sha }} trên nhánh ${{ github.ref_name }}"
+
+      # `run: |` cho phép viết nhiều lệnh, mỗi dòng một lệnh.
+      - name: Xem runner là máy gì
+        run: |
+          echo "== Hệ điều hành =="
+          uname -a
+          echo "== CPU / RAM / ổ đĩa =="
+          echo "Số CPU: $(nproc)"
+          free -h
+          df -h /
+          echo "== Công cụ có sẵn =="
+          git --version
+          node --version
+          docker --version
+          echo "== Code vừa checkout =="
+          ls -la

@@ -1,0 +1,35 @@
+# ============================================================
+# Bài 2: CI
+# Mỗi lần push lên main hoặc mở PR vào main: tự cài thư viện và chạy test.
+# Test fail → lệnh trả mã lỗi ≠ 0 → job đỏ → PR hiện dấu ✗.
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test (Node 24)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tải code về runner
+        uses: actions/checkout@v7
+
+      - name: Cài Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # `npm ci` chứ không phải `npm install`: cài ĐÚNG version ghi trong
+      # package-lock.json, lock file lệch package.json thì báo lỗi ngay.
+      # Nhờ vậy lần build nào cũng giống nhau.
+      - name: Cài thư viện
+        run: npm ci
+
+      - name: Chạy test
+        run: npm test

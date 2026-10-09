@@ -1,0 +1,10 @@
+{
+  "name": "cicd-practice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Repo thực hành CI/CD với GitHub Actions",
+  "main": "src/calculator.js",
+  "scripts": {
+    "test": "node --test"
+  }
+}
