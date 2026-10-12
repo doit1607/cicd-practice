@@ -1,0 +1,101 @@
+# ============================================================
+# Bài 6: Self-hosted runner
+# Chạy job trên máy của chính mình (runner "dungtm", Windows) thay vì
+# máy ảo GitHub cấp sẵn, và so sánh 2 loại runner:
+# - kham-may:      job đang chạy trên máy nào, bằng user nào, ở thư mục nào.
+# - dem-*:         mỗi lần chạy cộng 1 vào file đếm. Máy riêng GIỮ file giữa
+#                  các lần chạy; máy GitHub bị xoá sạch sau mỗi job → luôn là 1.
+# - test:          chạy test thật của repo trên máy riêng.
+#
+# Chỉ có 1 runner riêng → các job self-hosted phải xếp hàng chạy lần lượt,
+# còn job ubuntu-latest chạy song song trên máy của GitHub.
+#
+# Bảo mật: KHÔNG chạy theo pull_request. Chỉ chạy khi push (cần quyền ghi
+# repo) hoặc bấm tay → người lạ fork repo không chạy được code trên máy mình.
+# ============================================================
+name: Self-hosted
+
+on:
+  push:
+    paths:
+      - .github/workflows/self-hosted.yml   # chỉ chạy khi sửa chính file này
+  workflow_dispatch:
+
+jobs:
+  kham-may:
+    name: Khám máy (self-hosted)
+    # Runner tự có 3 nhãn: self-hosted, Windows, X64 (không phân biệt hoa thường).
+    # Job chỉ được giao cho runner có ĐỦ mọi nhãn trong danh sách.
+    runs-on: [self-hosted, windows, x64]
+    defaults:
+      run:
+        # Máy chưa cài PowerShell 7 (pwsh) → dùng Windows PowerShell có sẵn.
+        # Bản này hay đọc sai tiếng Việt có dấu trong script → lệnh in ra viết không dấu.
+        shell: powershell
+    steps:
+      - name: Job đang chạy ở đâu
+        run: |
+          "Ten may:         $env:COMPUTERNAME"
+          "Ten runner:      $env:RUNNER_NAME"
+          "User chay job:   $(whoami)"
+          "Thu muc code:    $env:GITHUB_WORKSPACE"
+          "Thu muc cong cu: $env:RUNNER_TOOL_CACHE"
+
+      # Máy GitHub cài sẵn rất nhiều thứ; máy riêng chỉ có những gì mình tự cài.
+      - name: Công cụ có sẵn trên máy
+        run: |
+          foreach ($t in 'git', 'node', 'npm', 'docker') {
+            if (Get-Command $t -ErrorAction SilentlyContinue) { "$t : $(& $t --version)" }
+            else { "$t : CHUA CAI" }
+          }
+
+  dem-may-rieng:
+    name: Đếm lần chạy (self-hosted)
+    runs-on: [self-hosted, windows, x64]
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      # Lưu ở thư mục CHA của thư mục code: actions/checkout chỉ dọn thư mục code.
+      - name: Cộng 1 vào file đếm
+        run: |
+          $f = Join-Path (Split-Path $env:GITHUB_WORKSPACE -Parent) 'so-lan-chay.txt'
+          $n = 1
+          if (Test-Path $f) { $n = [int](Get-Content $f) + 1 }
+          Set-Content $f $n
+          "Lan chay thu $n  (file: $f)"
+
+  dem-github:
+    name: Đếm lần chạy (GitHub-hosted)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cộng 1 vào file đếm
+        run: |
+          f="$(dirname "$GITHUB_WORKSPACE")/so-lan-chay.txt"
+          n=$(( $(cat "$f" 2>/dev/null || echo 0) + 1 ))
+          echo "$n" > "$f"
+          echo "Lần chạy thứ $n  (file: $f)"
+
+  test:
+    name: Test (self-hosted)
+    runs-on: [self-hosted, windows, x64]
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Tải code về runner
+        uses: actions/checkout@v7
+
+      - name: Cài Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          # Không bật cache: npm như ci.yml. Máy riêng tự giữ thư mục cache npm
+          # giữa các lần chạy; cache của GitHub phải tải qua mạng nên thường chậm hơn.
+          # Node tải về lần đầu cũng được giữ lại trong thư mục công cụ (_work/_tool).
+
+      - name: Cài thư viện
+        run: npm ci
+
+      - name: Chạy test
+        run: npm test
