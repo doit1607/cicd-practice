@@ -1,0 +1,60 @@
+# ============================================================
+# Bài 7: Runner chạy trong container Docker
+# Runner "docker-runner" là 1 container Linux chạy trên Docker Desktop của máy mình
+# (image chính thức ghcr.io/actions/actions-runner).
+# - kham-may: chứng minh job đang chạy TRONG container Linux, không phải Windows.
+# - test:     chạy test thật của repo trong container đó.
+#
+# Runner Windows "dungtm" có nhãn Windows → không bao giờ nhận job của file này.
+#
+# Bảo mật: giống Bài 6, KHÔNG chạy theo pull_request.
+# ============================================================
+name: Docker runner
+
+on:
+  push:
+    paths:
+      - .github/workflows/docker-runner.yml   # chỉ chạy khi sửa chính file này
+  workflow_dispatch:
+
+jobs:
+  kham-may:
+    name: Khám máy (container)
+    # Runner trong container tự có nhãn: self-hosted, Linux, X64 (+ nhãn "docker" tự thêm).
+    runs-on: [self-hosted, linux, docker]
+    steps:
+      - name: Job đang chạy ở đâu
+        run: |
+          echo "Hostname (= ID container): $(hostname)"
+          echo "User chạy job:             $(whoami)"
+          echo "Thư mục code:              $GITHUB_WORKSPACE"
+          echo "== Hệ điều hành trong container =="
+          grep PRETTY_NAME /etc/os-release
+          # Docker luôn tạo file /.dockerenv trong mọi container.
+          if [ -f /.dockerenv ]; then echo "→ Đang chạy TRONG container Docker"; fi
+
+      # Image chỉ có runner + vài công cụ cơ bản; thiếu gì thì job phải tự cài.
+      - name: Công cụ có sẵn trong image
+        run: |
+          for t in git node npm docker; do
+            if command -v "$t" > /dev/null; then echo "$t : $("$t" --version)"; else echo "$t : CHƯA CÓ"; fi
+          done
+
+  test:
+    name: Test (container)
+    runs-on: [self-hosted, linux, docker]
+    steps:
+      - name: Tải code về runner
+        uses: actions/checkout@v7
+
+      # Image không có Node → setup-node tải về (giữ lại trong container cho lần sau).
+      - name: Cài Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Cài thư viện
+        run: npm ci
+
+      - name: Chạy test
+        run: npm test
