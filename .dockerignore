@@ -1,0 +1,8 @@
+# Những thứ KHÔNG gửi cho Docker khi build.
+# Dù Dockerfile chỉ COPY vài thư mục, lúc bắt đầu build Docker vẫn gửi CẢ thư mục repo
+# (gọi là build context) cho Docker engine → loại bớt cho nhanh và không lộ file thừa.
+node_modules
+# dist/ trên máy có thể là bản build cũ; image phải tự build dist/ từ code.
+dist
+.git
+.github
