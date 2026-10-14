@@ -1,0 +1,28 @@
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - app-net
+  api:
+    build: .
+    networks:
+      - app-net
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=mysecret
+    volumes:
+      - db-data:/var/lib/postgresql
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  db-data:
